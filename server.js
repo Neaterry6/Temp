@@ -1,6 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
+const cheerio = require('cheerio');
 
 const app = express();
 const PORT = 3000;
@@ -11,7 +12,7 @@ app.use(express.static('.')); // serve index.html, style.css from root
 
 // === 1secmail API handlers ===
 
-// Generate random email (just generate random username and domain from 1secmail's list)
+// Generate random email
 app.get('/api/generate-email', (req, res) => {
   const domains = ['1secmail.com', '1secmail.org', '1secmail.net', 'wwjmp.com', 'esiix.com', 'xojxe.com', 'yoggm.com'];
   const randomUser = Math.random().toString(36).substring(2, 10);
@@ -20,7 +21,6 @@ app.get('/api/generate-email', (req, res) => {
 });
 
 // Get inbox messages for email
-// query params: login=username, domain=domain.com
 app.get('/api/mailbox', async (req, res) => {
   const { login, domain } = req.query;
   if (!login || !domain) return res.status(400).json({ error: 'Missing login or domain' });
@@ -46,30 +46,52 @@ app.get('/api/mailbox/message', async (req, res) => {
   }
 });
 
-// === getsms.cc API handlers ===
-// NOTE: This example uses public free API endpoints. You will need to replace with your own API key or scraping logic.
+// === getsms.cc SCRAPER handlers ===
 
-// Example: Get available numbers for a country (default 'us')
+// Scrape available numbers for a country
 app.get('/api/getsms/available-numbers', async (req, res) => {
   const country = req.query.country || 'us';
   try {
-    // This is a placeholder endpoint - replace with your real getsms.cc API call or scraping logic
-    // e.g. `https://getsms.cc/api/...?country=${country}&apikey=YOUR_API_KEY`
-    res.json({ message: 'Replace with getsms.cc API call or scraping logic' });
+    const response = await axios.get(`https://getsms.cc/`);
+    const $ = cheerio.load(response.data);
+    const numbers = [];
+
+    $('.number-boxes-item').each((i, el) => {
+      const number = $(el).find('.number-boxes-item-number').text().trim();
+      const link = $(el).find('a').attr('href');
+      if (number && link) {
+        numbers.push({ number, link });
+      }
+    });
+
+    res.json(numbers);
   } catch (e) {
-    res.status(500).json({ error: 'Failed fetching available numbers' });
+    console.error(e);
+    res.status(500).json({ error: 'Failed fetching numbers' });
   }
 });
 
-// Example: Get inbox SMS messages for a rented number id
+// Scrape SMS inbox for a specific number page link
 app.get('/api/getsms/inbox', async (req, res) => {
-  const numberId = req.query.id;
-  if (!numberId) return res.status(400).json({ error: 'Missing number ID' });
+  const pageUrl = req.query.page;
+  if (!pageUrl) return res.status(400).json({ error: 'Missing number page URL' });
 
   try {
-    // Placeholder - replace with real getsms.cc API inbox call or scraping
-    res.json({ message: 'Replace with getsms.cc inbox fetching logic' });
+    const response = await axios.get(`https://getsms.cc${pageUrl}`);
+    const $ = cheerio.load(response.data);
+    const messages = [];
+
+    $('.sms-text').each((i, el) => {
+      const time = $(el).find('.sms-time').text().trim();
+      const text = $(el).find('p').text().trim();
+      if (text) {
+        messages.push({ time, text });
+      }
+    });
+
+    res.json(messages);
   } catch (e) {
+    console.error(e);
     res.status(500).json({ error: 'Failed fetching inbox' });
   }
 });
