@@ -8,11 +8,9 @@ const PORT = 3000;
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static('.')); // serve index.html, style.css from root
+app.use(express.static('.')); 
 
-// === 1secmail API handlers ===
-
-// Generate random email
+// === TempMail API Handlers ===
 app.get('/api/generate-email', (req, res) => {
   const domains = ['1secmail.com', '1secmail.org', '1secmail.net', 'wwjmp.com', 'esiix.com', 'xojxe.com', 'yoggm.com'];
   const randomUser = Math.random().toString(36).substring(2, 10);
@@ -20,7 +18,6 @@ app.get('/api/generate-email', (req, res) => {
   res.json({ email: `${randomUser}@${domain}` });
 });
 
-// Get inbox messages for email
 app.get('/api/mailbox', async (req, res) => {
   const { login, domain } = req.query;
   if (!login || !domain) return res.status(400).json({ error: 'Missing login or domain' });
@@ -33,7 +30,6 @@ app.get('/api/mailbox', async (req, res) => {
   }
 });
 
-// Get email message by id
 app.get('/api/mailbox/message', async (req, res) => {
   const { login, domain, id } = req.query;
   if (!login || !domain || !id) return res.status(400).json({ error: 'Missing login, domain or id' });
@@ -46,11 +42,8 @@ app.get('/api/mailbox/message', async (req, res) => {
   }
 });
 
-// === getsms.cc SCRAPER handlers ===
-
-// Scrape available numbers for a country
+// === TempNumber Web Scraper ===
 app.get('/api/getsms/available-numbers', async (req, res) => {
-  const country = req.query.country || 'us';
   try {
     const response = await axios.get(`https://getsms.cc/`);
     const $ = cheerio.load(response.data);
@@ -66,12 +59,10 @@ app.get('/api/getsms/available-numbers', async (req, res) => {
 
     res.json(numbers);
   } catch (e) {
-    console.error(e);
     res.status(500).json({ error: 'Failed fetching numbers' });
   }
 });
 
-// Scrape SMS inbox for a specific number page link
 app.get('/api/getsms/inbox', async (req, res) => {
   const pageUrl = req.query.page;
   if (!pageUrl) return res.status(400).json({ error: 'Missing number page URL' });
@@ -91,7 +82,6 @@ app.get('/api/getsms/inbox', async (req, res) => {
 
     res.json(messages);
   } catch (e) {
-    console.error(e);
     res.status(500).json({ error: 'Failed fetching inbox' });
   }
 });
