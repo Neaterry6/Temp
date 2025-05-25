@@ -6,7 +6,19 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="dashboard-section" class="section active">
+  <div id="auth-section" class="section active">
+    <h2>Login / Signup</h2>
+    <button id="login-tab" class="active">Login</button>
+    <button id="signup-tab">Signup</button>
+    <form id="auth-form">
+      <input type="text" id="username" placeholder="Username" required /><br />
+      <input type="password" id="password" placeholder="Password" required /><br />
+      <button id="auth-submit">Login</button>
+    </form>
+    <p id="auth-error"></p>
+  </div>
+
+  <div id="dashboard-section" class="section">
     <h2>Dashboard</h2>
     <button id="generate-temp-email">Generate TempMail</button>
     <button id="generate-temp-number">Generate TempNumber</button>
@@ -32,127 +44,60 @@
   </div>
 
   <script>
+    const authSection = document.getElementById('auth-section');
     const dashboardSection = document.getElementById('dashboard-section');
     const tempMailInboxSection = document.getElementById('tempmail-inbox-section');
     const tempNumberInboxSection = document.getElementById('tempnumber-inbox-section');
 
+    const loginTab = document.getElementById('login-tab');
+    const signupTab = document.getElementById('signup-tab');
+    const authForm = document.getElementById('auth-form');
+    const authSubmit = document.getElementById('auth-submit');
     const logoutButton = document.getElementById('logout-button');
-    const historyList = document.getElementById('history-list');
+    const authError = document.getElementById('auth-error');
 
-    let tempEmail = '';
-    let tempNumber = '';
-    let emailHistory = JSON.parse(localStorage.getItem('emailHistory')) || [];
-    let numberHistory = JSON.parse(localStorage.getItem('numberHistory')) || [];
+    let loggedIn = false;
 
-    function updateHistory() {
-      historyList.innerHTML = '';
-      emailHistory.forEach(email => {
-        const div = document.createElement('div');
-        div.textContent = `TempMail: ${email}`;
-        div.onclick = () => loadInbox(email);
-        historyList.appendChild(div);
+    loginTab.onclick = () => {
+      loginTab.classList.add('active');
+      signupTab.classList.remove('active');
+      authSubmit.textContent = 'Login';
+    };
+    signupTab.onclick = () => {
+      signupTab.classList.add('active');
+      loginTab.classList.remove('active');
+      authSubmit.textContent = 'Signup';
+    };
+
+    authForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const action = authSubmit.textContent.toLowerCase();
+
+      const response = await fetch(`/api/${action}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
       });
-      numberHistory.forEach(number => {
-        const div = document.createElement('div');
-        div.textContent = `TempNumber: ${number}`;
-        div.onclick = () => loadSMSInbox(number);
-        historyList.appendChild(div);
-      });
-    }
+
+      const data = await response.json();
+      if (data.error) {
+        authError.textContent = data.error;
+      } else {
+        loggedIn = true;
+        authSection.classList.remove('active');
+        dashboardSection.classList.add('active');
+      }
+    };
 
     logoutButton.onclick = () => {
-      localStorage.clear();
-      emailHistory = [];
-      numberHistory = [];
-      dashboardSection.classList.add('active');
+      loggedIn = false;
+      authSection.classList.add('active');
+      dashboardSection.classList.remove('active');
       tempMailInboxSection.classList.remove('active');
       tempNumberInboxSection.classList.remove('active');
-      updateHistory();
     };
-
-    document.getElementById('generate-temp-email').onclick = async () => {
-      const res = await fetch('/api/generate-email');
-      const data = await res.json();
-      tempEmail = data.email;
-      emailHistory.push(tempEmail);
-      localStorage.setItem('emailHistory', JSON.stringify(emailHistory));
-      document.getElementById('generated-email').textContent = `TempMail: ${tempEmail}`;
-      updateHistory();
-    };
-
-    document.getElementById('generate-temp-number').onclick = async () => {
-      tempNumber = '+1' + Math.floor(1000000000 + Math.random() * 9000000000);
-      numberHistory.push(tempNumber);
-      localStorage.setItem('numberHistory', JSON.stringify(numberHistory));
-      document.getElementById('generated-number').textContent = `TempNumber: ${tempNumber}`;
-      updateHistory();
-    };
-
-    document.getElementById('go-to-tempmail-inbox').onclick = () => {
-      if (!tempEmail) return alert('Generate a TempMail first!');
-      dashboardSection.classList.remove('active');
-      tempMailInboxSection.classList.add('active');
-      loadInbox(tempEmail);
-    };
-
-    document.getElementById('go-to-tempnumber-inbox').onclick = () => {
-      if (!tempNumber) return alert('Generate a TempNumber first!');
-      dashboardSection.classList.remove('active');
-      tempNumberInboxSection.classList.add('active');
-      loadSMSInbox(tempNumber);
-    };
-
-    document.getElementById('back-to-dashboard').onclick = () => {
-      tempMailInboxSection.classList.remove('active');
-      dashboardSection.classList.add('active');
-    };
-
-    document.getElementById('back-to-dashboard-2').onclick = () => {
-      tempNumberInboxSection.classList.remove('active');
-      dashboardSection.classList.add('active');
-    };
-
-    async function loadInbox(email) {
-      const [login, domain] = email.split('@');
-      const mailboxList = document.getElementById('mailbox-list');
-      mailboxList.innerHTML = 'Loading mails...';
-
-      try {
-        const res = await fetch(`/api/mailbox?login=${login}&domain=${domain}`);
-        const messages = await res.json();
-        mailboxList.innerHTML = messages.length === 0 
-          ? '<p>No emails found.</p>' 
-          : messages.map(msg => `<div class="mail-item" data-id="${msg.id}"><b>${msg.from}</b> - ${msg.subject}</div>`).join('');
-
-        document.querySelectorAll('.mail-item').forEach(el => {
-          el.onclick = async () => {
-            const id = el.getAttribute('data-id');
-            const msgRes = await fetch(`/api/mailbox/message?login=${login}&domain=${domain}&id=${id}`);
-            const msgData = await msgRes.json();
-            alert(`From: ${msgData.from}\nSubject: ${msgData.subject}\n\n${msgData.textBody || msgData.htmlBody}`);
-          };
-        });
-      } catch (e) {
-        mailboxList.innerHTML = '<p>Error loading mailbox.</p>';
-      }
-    }
-
-    async function loadSMSInbox(number) {
-      const smsInboxList = document.getElementById('sms-inbox-list');
-      smsInboxList.innerHTML = 'Loading SMS inbox...';
-
-      try {
-        const res = await fetch(`/api/getsms/inbox?page=${encodeURIComponent(number)}`);
-        const messages = await res.json();
-        smsInboxList.innerHTML = messages.length === 0 
-          ? '<p>No SMS found.</p>' 
-          : messages.map(msg => `<div class="sms-item"><b>${msg.time}</b>: ${msg.text}</div>`).join('');
-      } catch (e) {
-        smsInboxList.innerHTML = '<p>Error loading SMS inbox.</p>';
-      }
-    }
-
-    updateHistory();
   </script>
 </body>
-    </html>
+</html>
