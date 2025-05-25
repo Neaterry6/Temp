@@ -2,13 +2,41 @@ const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
 const cheerio = require('cheerio');
+const bodyParser = require('body-parser');
 
 const app = express();
 const PORT = 3000;
 
 app.use(cors());
 app.use(express.json());
+app.use(bodyParser.json());
 app.use(express.static('.')); 
+
+// Simulated user database
+const users = [];
+
+// === User Authentication Handlers ===
+app.post('/api/signup', (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password) {
+    return res.status(400).json({ error: 'Username and password required!' });
+  }
+  const existingUser = users.find(user => user.username === username);
+  if (existingUser) {
+    return res.status(400).json({ error: 'Username already exists!' });
+  }
+  users.push({ username, password });
+  res.json({ success: 'Signup successful! You can now log in.' });
+});
+
+app.post('/api/login', (req, res) => {
+  const { username, password } = req.body;
+  const user = users.find(user => user.username === username && user.password === password);
+  if (!user) {
+    return res.status(401).json({ error: 'Invalid username or password!' });
+  }
+  res.json({ success: 'Login successful!' });
+});
 
 // === TempMail API Handlers ===
 app.get('/api/generate-email', (req, res) => {
