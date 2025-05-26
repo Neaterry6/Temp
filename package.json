@@ -1,14 +1,22 @@
 {
   "name": "tempmail-mini",
   "version": "1.0.0",
-  "description": "Simple temp mail app",
+  "description": "Simple temp mail app using mail.tm API",
   "main": "server.js",
   "type": "module",
   "scripts": {
     "start": "node server.js"
   },
+  "keywords": [
+    "tempmail",
+    "mail.tm",
+    "temp-email",
+    "express"
+  ],
+  "author": "broken titan",
+  "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",
-    "node-fetch": "^3.3.1"
+    "node-fetch": "^3.3.2"
   }
 }
