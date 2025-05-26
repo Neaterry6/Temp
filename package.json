@@ -1,21 +1,15 @@
-
 {
-  "name": "sms-mail-hub",
+  "name": "tempmail-mini",
   "version": "1.0.0",
-  "description": "SMS and Mail Hub Application",
+  "description": "Simple tempmail generator with inbox checker",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
+  "author": "Titan",
+  "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",
-    "axios": "^1.4.0",
-    "cors": "^2.8.5",
-    "cheerio": "^1.0.0-rc.12"
-  },
-  "engines": {
-    "node": ">=18"
-  },
-  "author": "broken titan",
-  "license": "ISC"
+    "node-fetch": "^2.6.7"
+  }
 }
