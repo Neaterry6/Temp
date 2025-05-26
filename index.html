@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Titan Tools - TempMail</title>
+<title>Titan TempMail</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap');
 body {
@@ -30,15 +29,13 @@ h1 {
   box-shadow: 0 0 30px #0ff;
   background: #111;
 }
-input, button {
+button {
   padding: 13px;
   margin: 13px 0;
   border: none;
   border-radius: 8px;
   font-size: 1em;
   width: 90%;
-}
-button {
   background-color: #00f7ff;
   color: #000;
   cursor: pointer;
@@ -47,13 +44,13 @@ button {
 button:hover {
   background-color: #0ff;
 }
-#emailDisplay, #inboxMessages {
+#emailDisplay, #inboxMessages, #messageContent {
   margin-top: 20px;
   padding: 12px;
   background: #111;
   border-radius: 10px;
   box-shadow: 0 0 15px #0ff;
-  max-height: 300px;
+  max-height: 200px;
   overflow-y: auto;
   text-align: left;
 }
@@ -75,7 +72,6 @@ button:hover {
   border-radius: 6px;
   font-weight: bold;
   cursor: pointer;
-  user-select: none;
 }
 .light-mode {
   background: #f2f2f2;
@@ -86,6 +82,12 @@ button:hover {
   border-color: #00f7ff;
   box-shadow: 0 0 10px #00f7ff;
 }
+.message-subject {
+  font-weight: bold;
+  color: #0ff;
+  cursor: pointer;
+  margin-bottom: 6px;
+}
 </style>
 </head>
 <body>
@@ -94,126 +96,94 @@ button:hover {
 
 <h1>Titan TempMail</h1>
 
-<div class="container" id="loginPage">
-  <h2>Login</h2>
-  <input type="text" id="loginUsername" placeholder="Username" />
-  <input type="password" id="loginPassword" placeholder="Password" />
-  <button onclick="login()">Login</button>
-  <p>Don't have an account? <span class="link" onclick="showSignup()">Signup</span></p>
-</div>
-
-<div class="container hidden" id="signupPage">
-  <h2>Signup</h2>
-  <input type="text" id="signupUsername" placeholder="Username" />
-  <input type="password" id="signupPassword" placeholder="Password" />
-  <button onclick="signup()">Signup</button>
-  <p>Already have an account? <span class="link" onclick="showLogin()">Login</span></p>
-</div>
-
-<div class="container hidden" id="dashboardPage">
-  <h2>Email Generator</h2>
-  <button onclick="generateEmail()">Generate Temp Email</button>
-  <button onclick="checkInbox()">Check Inbox</button>
-  <button onclick="logout()">Logout</button>
+<div class="container" id="mainPage">
+  <button onclick="register()">Generate Temp Email</button>
+  <button onclick="checkInbox()" disabled id="checkInboxBtn">Check Inbox</button>
+  <button onclick="logout()" class="hidden" id="logoutBtn">Logout</button>
 
   <div id="emailDisplay"></div>
   <div id="inboxMessages" class="hidden"></div>
+  <div id="messageContent" class="hidden"></div>
 </div>
 
 <script>
-let loginVal = null;
-let domain = null;
+let email = '';
+let password = '';
+let messages = [];
 
-function showSignup() {
-  document.getElementById('loginPage').classList.add('hidden');
-  document.getElementById('signupPage').classList.remove('hidden');
-}
-function showLogin() {
-  document.getElementById('signupPage').classList.add('hidden');
-  document.getElementById('loginPage').classList.remove('hidden');
-}
-function login() {
-  const u = document.getElementById('loginUsername').value.trim();
-  const p = document.getElementById('loginPassword').value.trim();
-  if (u && p) {
-    localStorage.setItem('userTitan', u);
-    document.getElementById('loginPage').classList.add('hidden');
-    document.getElementById('dashboardPage').classList.remove('hidden');
-  } else {
-    alert('Fill both fields!');
-  }
-}
-function signup() {
-  const u = document.getElementById('signupUsername').value.trim();
-  const p = document.getElementById('signupPassword').value.trim();
-  if (u && p) {
-    localStorage.setItem('userTitan', u);
-    document.getElementById('signupPage').classList.add('hidden');
-    document.getElementById('dashboardPage').classList.remove('hidden');
-  } else {
-    alert('Fill both fields!');
-  }
-}
-function logout() {
-  localStorage.removeItem('userTitan');
-  loginVal = null;
-  domain = null;
-  document.getElementById('dashboardPage').classList.add('hidden');
-  document.getElementById('emailDisplay').innerHTML = '';
-  document.getElementById('inboxMessages').innerHTML = '';
-  document.getElementById('inboxMessages').classList.add('hidden');
-  document.getElementById('loginPage').classList.remove('hidden');
-}
 function toggleMode() {
   document.body.classList.toggle('light-mode');
 }
-function generateEmail() {
-  fetch('/api/generate')
-    .then((res) => res.json())
-    .then((data) => {
-      loginVal = data.login;
-      domain = data.domain;
-      document.getElementById('emailDisplay').innerHTML = `
-      <h3>Your Temp Email:</h3><p>${data.email}</p>`;
-      document.getElementById('inboxMessages').innerHTML = '';
-      document.getElementById('inboxMessages').classList.add('hidden');
-    })
-    .catch(() => alert('Failed to generate email'));
-}
-function checkInbox() {
-  if (!loginVal || !domain) return alert('Generate a Temp Email first!');
-  fetch(`/api/inbox?login=${loginVal}&domain=${domain}`)
-    .then((res) => res.json())
-    .then((data) => {
-      const inbox = document.getElementById('inboxMessages');
-      inbox.classList.remove('hidden');
-      if (!data.length) {
-        inbox.innerHTML = `<h3>Inbox</h3><p>No messages yet.</p>`;
-      } else {
-        inbox.innerHTML = `<h3>Inbox</h3>` + data
-          .map(
-            (m) => `
-          <div style="margin-bottom:15px;">
-            <p><strong>From:</strong> ${m.from}</p>
-            <p><strong>Subject:</strong> ${m.subject}</p>
-            <p><strong>Date:</strong> ${new Date(m.date).toLocaleString()}</p>
-            <p>${m.body.length > 200 ? m.body.substring(0, 200) + '...' : m.body}</p>
-            <hr />
-          </div>`
-          )
-          .join('');
-      }
-    })
-    .catch(() => alert('Failed to fetch inbox'));
+
+async function register() {
+  const res = await fetch('/api/register', { method: 'POST' });
+  const data = await res.json();
+  if (data.email) {
+    email = data.email;
+    password = data.password;
+    document.getElementById('emailDisplay').innerHTML = `<h3>Your Temp Email:</h3><p>${email}</p>`;
+    document.getElementById('checkInboxBtn').disabled = false;
+    document.getElementById('logoutBtn').classList.remove('hidden');
+    document.getElementById('inboxMessages').classList.add('hidden');
+    document.getElementById('messageContent').classList.add('hidden');
+    messages = [];
+  } else {
+    alert('Failed to create temp email.');
+  }
 }
 
-// Auto-login if user is saved
-window.onload = () => {
-  if (localStorage.getItem('userTitan')) {
-    document.getElementById('loginPage').classList.add('hidden');
-    document.getElementById('dashboardPage').classList.remove('hidden');
+async function checkInbox() {
+  const res = await fetch('/api/inbox');
+  const data = await res.json();
+  if (data.error) {
+    alert(data.error);
+    return;
   }
-};
+  messages = data;
+  const inbox = document.getElementById('inboxMessages');
+  inbox.classList.remove('hidden');
+  if (!messages.length) {
+    inbox.innerHTML = `<h3>Inbox</h3><p>No messages yet.</p>`;
+  } else {
+    inbox.innerHTML = `<h3>Inbox</h3>` + messages.map(m => `
+      <div class="message-subject" onclick="showMessage('${m.id}')">${m.subject || '(No Subject)'}</div>
+      <p><strong>From:</strong> ${m.from}</p>
+      <hr>`).join('');
+  }
+  document.getElementById('messageContent').classList.add('hidden');
+}
+
+async function showMessage(id) {
+  const res = await fetch(`/api/message/${id}`);
+  const data = await res.json();
+  if (data.error) {
+    alert('Failed to load message.');
+    return;
+  }
+  const contentDiv = document.getElementById('messageContent');
+  contentDiv.classList.remove('hidden');
+  // Show plain text or html body (fall back to intro)
+  const body = data.text || data.html || data.intro || 'No content';
+  // Sanitize simple HTML if needed, or display as plain text
+  contentDiv.innerHTML = `<h3>${data.subject || '(No Subject)'}</h3>
+    <p><strong>From:</strong> ${data.from.address}</p>
+    <p><strong>Date:</strong> ${new Date(data.createdAt).toLocaleString()}</p>
+    <hr>
+    <div>${body}</div>`;
+}
+
+async function logout() {
+  await fetch('/api/logout', { method: 'POST' });
+  email = '';
+  password = '';
+  messages = [];
+  document.getElementById('emailDisplay').innerHTML = '';
+  document.getElementById('inboxMessages').classList.add('hidden');
+  document.getElementById('messageContent').classList.add('hidden');
+  document.getElementById('checkInboxBtn').disabled = true;
+  document.getElementById('logoutBtn').classList.add('hidden');
+  alert('Logged out');
+}
 </script>
 
 </body>
