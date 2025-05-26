@@ -1,89 +1,49 @@
+# Titan TempMail
 
-# SMS-Mail-Hub
-
-A sleek, neon-themed web app combining temporary email and temporary phone number services in one place.
+A simple temporary email generator web app with a sleek dark/light theme, login/signup functionality, and inbox checking feature.
 
 ---
 
 ## Features
 
-- **Temporary Email Generator**  
-  Generates disposable email addresses via the [1secmail](https://www.1secmail.com/api/) API.
-
-- **Temporary Phone Number Generator**  
-  Provides temporary phone numbers (integration planned with [getsms.cc](https://getsms.cc/) API).
-
-- **Inbox Pages**  
-  View incoming emails and SMS messages (depending on API availability).
-
-- **Single Page Frontend**  
-  Beautiful neon-black UI with smooth section-based routing.
-
-- **Single Backend Script**  
-  One Express.js server (`server.js`) handles API calls and proxies.
+- User login and signup (client-side only, using localStorage)
+- Dark/Light mode toggle
+- Generate temporary email addresses
+- View inbox messages for generated emails
+- Logout functionality
 
 ---
 
-## Repo Structure
+## Frontend
 
-/sms-mail-hub/ ├── server.js        # Backend Express server handling API requests ├── index.html       # Single-page frontend UI ├── style.css        # Neon/black theme styling ├── package.json     # Dependencies and scripts
-
----
-
-## Setup & Run
-
-1. Clone the repo:
-
-   ```bash
-   git clone https://github.com/yourusername/sms-mail-hub.git
-   cd sms-mail-hub
-
-2. Install dependencies:
-
-npm install
-
-
-3. Start the server:
-
-npm start
-
-
-4. Open your browser at http://localhost:3000
-
-
-
+- Pure HTML, CSS, and JavaScript
+- Responsive and modern design using Google Fonts and simple CSS effects
+- Connects to backend API endpoints `/api/generate` and `/api/inbox`
 
 ---
 
-APIs Used
+## Backend
 
-1secmail: For generating and retrieving temporary emails.
-
-getsms.cc: For temporary phone numbers (inbox scraping/scraping or API integration pending).
-
-
-
----
-
-Notes
-
-This is a proof-of-concept with plans to expand functionality.
-
-APIs used are free and may have rate limits or usage policies.
-
-Inbox support for temporary phone numbers depends on the available APIs.
-
-
+- Node.js with Express.js
+- Provides two main endpoints:
+  - `GET /api/generate` - Generates a new temporary email
+  - `GET /api/inbox?login=xxx&domain=yyy` - Returns inbox messages for the email
+- Uses in-memory storage to simulate inbox messages
 
 ---
 
-License
+## Getting Started
 
-MIT ©broken titan
+### Prerequisites
 
+- Node.js v18 or higher
+- npm
 
----
+### Installation
 
-Feel free to contribute or open issues for feature requests and bug reports.
+1. Clone this repository or download the source files.
 
+2. Install backend dependencies:
 
+```bash
+npm install express cors
