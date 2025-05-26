@@ -1,67 +1,80 @@
-// backend.js
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 const app = express();
+const PORT = process.env.PORT || 3000;
+
 app.use(cors());
 app.use(express.json());
 
-const PORT = 3000;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// Supported domains
-const domains = ['titanmail.com', 'temp.titan', 'mailtitan.xyz'];
+// Serve index.html at root
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
-// In-memory store for generated emails and inboxes
-const inboxStore = new Map();
+// In-memory storage for emails and inbox messages
+const inboxes = {}; 
+// Structure example:
+// inboxes = {
+//   "abc123@tempmail.com": [
+//      { from: "someone@example.com", subject: "Hello", body: "Hi there!" },
+//      ...
+//   ]
+// }
 
-// Utility to generate random string
-function randomString(len = 8) {
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  let s = '';
-  for (let i = 0; i < len; i++) {
-    s += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return s;
-}
-
-// Generate temp email
+// Generate a temp email address
 app.get('/api/generate', (req, res) => {
-  const login = randomString(10);
-  const domain = domains[Math.floor(Math.random() * domains.length)];
+  const login = Math.random().toString(36).substring(2, 10);
+  const domain = 'tempmail.com';
   const email = `${login}@${domain}`;
 
-  // Initialize inbox empty array
-  inboxStore.set(`${login}@${domain}`, []);
+  // Create empty inbox if none
+  if (!inboxes[email]) {
+    inboxes[email] = [];
+  }
 
   res.json({ login, domain, email });
 });
 
-// Simulate inbox messages for a temp email
+// Retrieve inbox messages for a temp email
 app.get('/api/inbox', (req, res) => {
   const { login, domain } = req.query;
   if (!login || !domain) {
     return res.status(400).json({ error: 'Missing login or domain' });
   }
+
   const email = `${login}@${domain}`;
-  if (!inboxStore.has(email)) {
-    return res.status(404).json({ error: 'Email not found' });
+  if (!inboxes[email]) {
+    return res.status(404).json([]);
   }
 
-  // For demo: if inbox empty, create a sample message once
-  if (inboxStore.get(email).length === 0) {
-    inboxStore.set(email, [
-      {
-        from: 'welcome@titanmail.com',
-        subject: 'Welcome to Titan TempMail',
-        body: 'Thanks for using Titan TempMail service!'
-      }
-    ]);
-  }
-
-  res.json(inboxStore.get(email));
+  res.json(inboxes[email]);
 });
 
-// Start server
+// Simulate sending an email to a temp mailbox
+// POST payload: { to: string, from: string, subject: string, body: string }
+app.post('/api/send', (req, res) => {
+  const { to, from, subject, body } = req.body;
+
+  if (!to || !from || !subject || !body) {
+    return res.status(400).json({ error: 'Missing to, from, subject, or body' });
+  }
+
+  if (!inboxes[to]) {
+    return res.status(404).json({ error: 'Recipient inbox not found' });
+  }
+
+  // Add message to inbox
+  inboxes[to].push({ from, subject, body, date: new Date().toISOString() });
+
+  res.json({ success: true, message: 'Email sent to temp mailbox' });
+});
+
 app.listen(PORT, () => {
-  console.log(`Titan TempMail backend listening at http://localhost:${PORT}`);
+  console.log(`Server running at http://localhost:${PORT}`);
 });
