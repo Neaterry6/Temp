@@ -43,7 +43,6 @@ button {
   color: #000;
   cursor: pointer;
   box-shadow: 0 0 15px #00f7ff;
-  transition: background-color 0.3s ease;
 }
 button:hover {
   background-color: #0ff;
@@ -97,16 +96,16 @@ button:hover {
 
 <div class="container" id="loginPage">
   <h2>Login</h2>
-  <input type="text" id="loginUsername" placeholder="Username" autocomplete="username" />
-  <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password" />
+  <input type="text" id="loginUsername" placeholder="Username" />
+  <input type="password" id="loginPassword" placeholder="Password" />
   <button onclick="login()">Login</button>
   <p>Don't have an account? <span class="link" onclick="showSignup()">Signup</span></p>
 </div>
 
 <div class="container hidden" id="signupPage">
   <h2>Signup</h2>
-  <input type="text" id="signupUsername" placeholder="Username" autocomplete="username" />
-  <input type="password" id="signupPassword" placeholder="Password" autocomplete="new-password" />
+  <input type="text" id="signupUsername" placeholder="Username" />
+  <input type="password" id="signupPassword" placeholder="Password" />
   <button onclick="signup()">Signup</button>
   <p>Already have an account? <span class="link" onclick="showLogin()">Login</span></p>
 </div>
@@ -122,7 +121,8 @@ button:hover {
 </div>
 
 <script>
-let loginVal = null, domain = null;
+let loginVal = null;
+let domain = null;
 
 function showSignup() {
   document.getElementById('loginPage').classList.add('hidden');
@@ -135,29 +135,33 @@ function showLogin() {
 function login() {
   const u = document.getElementById('loginUsername').value.trim();
   const p = document.getElementById('loginPassword').value.trim();
-  if(u && p) {
+  if (u && p) {
     localStorage.setItem('userTitan', u);
     document.getElementById('loginPage').classList.add('hidden');
     document.getElementById('dashboardPage').classList.remove('hidden');
-  } else alert('Fill both fields!');
+  } else {
+    alert('Fill both fields!');
+  }
 }
 function signup() {
   const u = document.getElementById('signupUsername').value.trim();
   const p = document.getElementById('signupPassword').value.trim();
-  if(u && p) {
+  if (u && p) {
     localStorage.setItem('userTitan', u);
     document.getElementById('signupPage').classList.add('hidden');
     document.getElementById('dashboardPage').classList.remove('hidden');
-  } else alert('Fill both fields!');
+  } else {
+    alert('Fill both fields!');
+  }
 }
 function logout() {
   localStorage.removeItem('userTitan');
   loginVal = null;
   domain = null;
+  document.getElementById('dashboardPage').classList.add('hidden');
   document.getElementById('emailDisplay').innerHTML = '';
   document.getElementById('inboxMessages').innerHTML = '';
   document.getElementById('inboxMessages').classList.add('hidden');
-  document.getElementById('dashboardPage').classList.add('hidden');
   document.getElementById('loginPage').classList.remove('hidden');
 }
 function toggleMode() {
@@ -165,47 +169,47 @@ function toggleMode() {
 }
 function generateEmail() {
   fetch('/api/generate')
-    .then(res => {
-      if (!res.ok) throw new Error('Failed to generate email');
-      return res.json();
-    })
-    .then(data => {
+    .then((res) => res.json())
+    .then((data) => {
       loginVal = data.login;
       domain = data.domain;
       document.getElementById('emailDisplay').innerHTML = `
-        <h3>Your Temp Email:</h3><p>${data.email}</p>`;
-      document.getElementById('inboxMessages').classList.add('hidden');
+      <h3>Your Temp Email:</h3><p>${data.email}</p>`;
       document.getElementById('inboxMessages').innerHTML = '';
+      document.getElementById('inboxMessages').classList.add('hidden');
     })
-    .catch(err => alert(err.message));
+    .catch(() => alert('Failed to generate email'));
 }
 function checkInbox() {
   if (!loginVal || !domain) return alert('Generate a Temp Email first!');
   fetch(`/api/inbox?login=${loginVal}&domain=${domain}`)
-    .then(res => {
-      if (!res.ok) throw new Error('Failed to fetch inbox');
-      return res.json();
-    })
-    .then(data => {
+    .then((res) => res.json())
+    .then((data) => {
       const inbox = document.getElementById('inboxMessages');
       inbox.classList.remove('hidden');
       if (!data.length) {
         inbox.innerHTML = `<h3>Inbox</h3><p>No messages yet.</p>`;
       } else {
-        inbox.innerHTML = `<h3>Inbox</h3>` + data.map(m => `
-          <p><strong>From:</strong> ${m.from}</p>
-          <p><strong>Subject:</strong> ${m.subject}</p>
-          <p>${m.body ? m.body : ''}</p>
-          <hr>`).join('');
+        inbox.innerHTML = `<h3>Inbox</h3>` + data
+          .map(
+            (m) => `
+          <div style="margin-bottom:15px;">
+            <p><strong>From:</strong> ${m.from}</p>
+            <p><strong>Subject:</strong> ${m.subject}</p>
+            <p><strong>Date:</strong> ${new Date(m.date).toLocaleString()}</p>
+            <p>${m.body.length > 200 ? m.body.substring(0, 200) + '...' : m.body}</p>
+            <hr />
+          </div>`
+          )
+          .join('');
       }
     })
-    .catch(err => alert(err.message));
+    .catch(() => alert('Failed to fetch inbox'));
 }
 
-// Auto-login if user already stored
+// Auto-login if user is saved
 window.onload = () => {
-  const user = localStorage.getItem('userTitan');
-  if(user) {
+  if (localStorage.getItem('userTitan')) {
     document.getElementById('loginPage').classList.add('hidden');
     document.getElementById('dashboardPage').classList.remove('hidden');
   }
