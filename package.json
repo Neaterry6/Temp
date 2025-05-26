@@ -1,22 +1,13 @@
 {
-  "name": "titan-tempmail",
+  "name": "tempmail-mini",
   "version": "1.0.0",
-  "description": "Titan Tools TempMail and TempNumber generator server",
+  "description": "Simple temp mail app",
   "main": "server.js",
   "type": "module",
   "scripts": {
     "start": "node server.js"
   },
-  "keywords": [
-    "tempmail",
-    "tempnumber",
-    "express",
-    "node"
-  ],
-  "author": "Your Name",
-  "license": "MIT",
   "dependencies": {
-    "cors": "^2.8.5",
     "express": "^4.18.2",
     "node-fetch": "^3.3.1"
   }
