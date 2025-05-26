@@ -1,15 +1,23 @@
 {
-  "name": "tempmail-mini",
+  "name": "titan-tempmail",
   "version": "1.0.0",
-  "description": "Simple tempmail generator with inbox checker",
+  "description": "Titan Tools TempMail and TempNumber generator server",
   "main": "server.js",
+  "type": "module",
   "scripts": {
     "start": "node server.js"
   },
-  "author": "Titan",
+  "keywords": [
+    "tempmail",
+    "tempnumber",
+    "express",
+    "node"
+  ],
+  "author": "Your Name",
   "license": "MIT",
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.18.2",
-    "node-fetch": "^2.6.7"
+    "node-fetch": "^3.3.1"
   }
 }
