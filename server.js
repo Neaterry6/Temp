@@ -7,16 +7,43 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public')); // serve index.html from /public
+app.use(express.static('public')); // serve static frontend
 
-// Cache token & account per session (simple in-memory, no DB)
-let account = null;
+let account = null; // { email, password }
 let token = null;
+let tokenExpiry = null;
 
-// Create temp mail account
+// Helper: Authenticate and get new token
+async function authenticate() {
+  if (!account) throw new Error('No account registered');
+  const authRes = await fetch('https://api.mail.tm/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ address: account.email, password: account.password }),
+  });
+  if (!authRes.ok) {
+    const err = await authRes.json();
+    throw new Error(`Auth failed: ${JSON.stringify(err)}`);
+  }
+  const authData = await authRes.json();
+  token = authData.token;
+
+  // mail.tm tokens usually expire in 1 hour - store expiry timestamp
+  // Here we just set expiry 55 minutes from now to be safe
+  tokenExpiry = Date.now() + 55 * 60 * 1000;
+}
+
+// Helper: Ensure token is valid, else re-authenticate
+async function ensureToken() {
+  if (!token || !tokenExpiry || Date.now() >= tokenExpiry) {
+    await authenticate();
+  }
+}
+
+// Register new temp email account
 app.post('/api/register', async (req, res) => {
   try {
-    // Get domain list to pick a domain for the email
+    // Get available domains
     const domainsRes = await fetch('https://api.mail.tm/domains');
     const domainsData = await domainsRes.json();
     if (!domainsData['hydra:member'] || domainsData['hydra:member'].length === 0) {
@@ -27,7 +54,6 @@ app.post('/api/register', async (req, res) => {
     // Generate random user and password
     const user = Math.random().toString(36).substring(2, 10);
     const password = Math.random().toString(36).substring(2, 10);
-
     const email = `${user}@${domain}`;
 
     // Register account
@@ -44,20 +70,8 @@ app.post('/api/register', async (req, res) => {
 
     account = { email, password };
 
-    // Authenticate to get token
-    const authRes = await fetch('https://api.mail.tm/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ address: email, password }),
-    });
-
-    if (!authRes.ok) {
-      const err = await authRes.json();
-      return res.status(500).json({ error: 'Failed to authenticate', details: err });
-    }
-
-    const authData = await authRes.json();
-    token = authData.token;
+    // Authenticate and get token
+    await authenticate();
 
     res.json({ email, password });
   } catch (error) {
@@ -68,8 +82,8 @@ app.post('/api/register', async (req, res) => {
 
 // Get inbox messages
 app.get('/api/inbox', async (req, res) => {
-  if (!token) return res.status(400).json({ error: 'Not authenticated' });
   try {
+    await ensureToken();
     const messagesRes = await fetch('https://api.mail.tm/messages', {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -94,8 +108,8 @@ app.get('/api/inbox', async (req, res) => {
 
 // Get full message content by id
 app.get('/api/message/:id', async (req, res) => {
-  if (!token) return res.status(400).json({ error: 'Not authenticated' });
   try {
+    await ensureToken();
     const { id } = req.params;
     const messageRes = await fetch(`https://api.mail.tm/messages/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -116,6 +130,7 @@ app.get('/api/message/:id', async (req, res) => {
 app.post('/api/logout', (req, res) => {
   account = null;
   token = null;
+  tokenExpiry = null;
   res.json({ message: 'Logged out' });
 });
 
