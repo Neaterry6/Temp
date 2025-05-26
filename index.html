@@ -1,189 +1,299 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" >
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Titan TempMail</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap');
-body {
-  background-color: #0d0d0d;
-  font-family: 'Orbitron', sans-serif;
-  color: #00f7ff;
-  text-align: center;
-  margin: 0;
-  padding: 0;
-  transition: all 0.4s ease;
-}
-h1 {
-  font-size: 2.8em;
-  margin-top: 40px;
-  text-shadow: 0 0 15px #0ff;
-}
-.container {
-  max-width: 420px;
-  margin: 25px auto;
-  padding: 25px;
-  border: 1px solid #0ff;
-  border-radius: 12px;
-  box-shadow: 0 0 30px #0ff;
-  background: #111;
-}
-button {
-  padding: 13px;
-  margin: 13px 0;
-  border: none;
-  border-radius: 8px;
-  font-size: 1em;
-  width: 90%;
-  background-color: #00f7ff;
-  color: #000;
-  cursor: pointer;
-  box-shadow: 0 0 15px #00f7ff;
-}
-button:hover {
-  background-color: #0ff;
-}
-#emailDisplay, #inboxMessages, #messageContent {
-  margin-top: 20px;
-  padding: 12px;
-  background: #111;
-  border-radius: 10px;
-  box-shadow: 0 0 15px #0ff;
-  max-height: 200px;
-  overflow-y: auto;
-  text-align: left;
-}
-.hidden {
-  display: none;
-}
-.link {
-  color: #00f7ff;
-  cursor: pointer;
-  text-decoration: underline;
-}
-.toggle-btn {
-  position: fixed;
-  top: 10px;
-  right: 15px;
-  padding: 10px 15px;
-  background: #00f7ff;
-  color: #000;
-  border-radius: 6px;
-  font-weight: bold;
-  cursor: pointer;
-}
-.light-mode {
-  background: #f2f2f2;
-  color: #222;
-}
-.light-mode .container {
-  background: #fff;
-  border-color: #00f7ff;
-  box-shadow: 0 0 10px #00f7ff;
-}
-.message-subject {
-  font-weight: bold;
-  color: #0ff;
-  cursor: pointer;
-  margin-bottom: 6px;
-}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Titan TempMail</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap');
+    body {
+      background-color: #0d0d0d;
+      font-family: 'Orbitron', sans-serif;
+      color: #00f7ff;
+      margin: 0; padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 2.8em;
+      margin-bottom: 30px;
+      text-shadow: 0 0 15px #0ff;
+    }
+    .toggle-container {
+      margin-bottom: 15px;
+      font-size: 1.2em;
+    }
+    .toggle-container label {
+      cursor: pointer;
+      user-select: none;
+    }
+    input[type="text"], input[type="password"] {
+      padding: 10px;
+      font-size: 1em;
+      border-radius: 8px;
+      border: none;
+      margin: 5px 0 15px 0;
+      width: 250px;
+      text-align: center;
+      box-shadow: 0 0 10px #00f7ff66;
+      background: #111;
+      color: #00f7ff;
+      outline: none;
+    }
+    button {
+      background-color: #00f7ff;
+      color: #000;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 25px;
+      font-size: 1.1em;
+      cursor: pointer;
+      margin: 10px 5px;
+      box-shadow: 0 0 15px #00f7ff;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #0ff;
+    }
+    #emailDisplay {
+      margin-top: 25px;
+      font-size: 1.3em;
+      font-weight: bold;
+      background: #111;
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0 0 25px #0ff;
+      word-break: break-all;
+      user-select: all;
+    }
+    #inbox, #messageContent {
+      max-width: 600px;
+      margin: 25px auto;
+      background: #111;
+      border-radius: 12px;
+      box-shadow: 0 0 25px #0ff;
+      padding: 20px;
+      text-align: left;
+      max-height: 350px;
+      overflow-y: auto;
+    }
+    .msg-item {
+      padding: 12px 10px;
+      border-bottom: 1px solid #00f7ff44;
+      cursor: pointer;
+    }
+    .msg-item:hover {
+      background-color: #00f7ff22;
+    }
+    .msg-subject {
+      font-weight: bold;
+      color: #00eaff;
+    }
+    .msg-from {
+      font-size: 0.9em;
+      color: #a0f0ff;
+    }
+    pre {
+      white-space: pre-wrap;
+      color: #00f7ff;
+      font-family: 'Courier New', Courier, monospace;
+    }
+  </style>
 </head>
 <body>
 
-<div class="toggle-btn" onclick="toggleMode()">Dark/Light</div>
+  <h1>Titan TempMail</h1>
 
-<h1>Titan TempMail</h1>
+  <div class="toggle-container">
+    <label>
+      <input type="checkbox" id="modeToggle" />
+      Toggle to Login
+    </label>
+  </div>
 
-<div class="container" id="mainPage">
-  <button onclick="register()">Generate Temp Email</button>
-  <button onclick="checkInbox()" disabled id="checkInboxBtn">Check Inbox</button>
-  <button onclick="logout()" class="hidden" id="logoutBtn">Logout</button>
+  <div id="signupFields">
+    <button id="registerBtn">Generate Temp Email (Sign Up)</button>
+  </div>
+
+  <div id="loginFields" style="display:none;">
+    <input type="text" id="loginEmail" placeholder="Enter your email" />
+    <input type="password" id="loginPassword" placeholder="Enter your password" />
+    <br/>
+    <button id="loginBtn">Login</button>
+  </div>
+
+  <button id="inboxBtn" disabled>Check Inbox</button>
+  <button id="logoutBtn" disabled>Logout</button>
 
   <div id="emailDisplay"></div>
-  <div id="inboxMessages" class="hidden"></div>
-  <div id="messageContent" class="hidden"></div>
-</div>
+
+  <div id="inbox"></div>
+  <div id="messageContent"></div>
 
 <script>
-let email = '';
-let password = '';
-let messages = [];
+  const modeToggle = document.getElementById('modeToggle');
+  const signupFields = document.getElementById('signupFields');
+  const loginFields = document.getElementById('loginFields');
+  const registerBtn = document.getElementById('registerBtn');
+  const loginBtn = document.getElementById('loginBtn');
+  const inboxBtn = document.getElementById('inboxBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const emailDisplay = document.getElementById('emailDisplay');
+  const inboxDiv = document.getElementById('inbox');
+  const messageDiv = document.getElementById('messageContent');
 
-function toggleMode() {
-  document.body.classList.toggle('light-mode');
-}
+  let currentEmail = null;
 
-async function register() {
-  const res = await fetch('/api/register', { method: 'POST' });
-  const data = await res.json();
-  if (data.email) {
-    email = data.email;
-    password = data.password;
-    document.getElementById('emailDisplay').innerHTML = `<h3>Your Temp Email:</h3><p>${email}</p>`;
-    document.getElementById('checkInboxBtn').disabled = false;
-    document.getElementById('logoutBtn').classList.remove('hidden');
-    document.getElementById('inboxMessages').classList.add('hidden');
-    document.getElementById('messageContent').classList.add('hidden');
-    messages = [];
-  } else {
-    alert('Failed to create temp email.');
+  // Toggle between Sign Up and Login UI
+  modeToggle.addEventListener('change', () => {
+    if (modeToggle.checked) {
+      // Login mode
+      signupFields.style.display = 'none';
+      loginFields.style.display = 'block';
+      emailDisplay.textContent = '';
+      inboxDiv.innerHTML = '';
+      messageDiv.innerHTML = '';
+      inboxBtn.disabled = true;
+      logoutBtn.disabled = true;
+      currentEmail = null;
+    } else {
+      // Sign Up mode
+      signupFields.style.display = 'block';
+      loginFields.style.display = 'none';
+      emailDisplay.textContent = '';
+      inboxDiv.innerHTML = '';
+      messageDiv.innerHTML = '';
+      inboxBtn.disabled = true;
+      logoutBtn.disabled = true;
+      currentEmail = null;
+    }
+  });
+
+  // Register (Sign Up) new temp email
+  registerBtn.onclick = async () => {
+    emailDisplay.textContent = 'Generating temp email...';
+    inboxDiv.innerHTML = '';
+    messageDiv.innerHTML = '';
+
+    try {
+      const res = await fetch('/api/register', { method: 'POST' });
+      if (!res.ok) throw new Error('Failed to register');
+      const data = await res.json();
+      currentEmail = data.email;
+      emailDisplay.textContent = `Your Temp Email: ${currentEmail} | Password: ${data.password}`;
+      inboxBtn.disabled = false;
+      logoutBtn.disabled = false;
+    } catch (err) {
+      emailDisplay.textContent = 'Error generating email.';
+      alert(err.message);
+    }
+  };
+
+  // Login existing account
+  loginBtn.onclick = async () => {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value.trim();
+
+    if (!email || !password) {
+      alert('Please enter email and password');
+      return;
+    }
+
+    emailDisplay.textContent = 'Logging in...';
+    inboxDiv.innerHTML = '';
+    messageDiv.innerHTML = '';
+
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Login failed');
+      }
+      currentEmail = email;
+      emailDisplay.textContent = `Logged in as: ${currentEmail}`;
+      inboxBtn.disabled = false;
+      logoutBtn.disabled = false;
+    } catch (err) {
+      emailDisplay.textContent = '';
+      alert(err.message);
+    }
+  };
+
+  inboxBtn.onclick = async () => {
+    if (!currentEmail) {
+      alert('Please generate or login first.');
+      return;
+    }
+    inboxDiv.innerHTML = 'Loading inbox...';
+    messageDiv.innerHTML = '';
+    try {
+      const res = await fetch('/api/inbox');
+      if (!res.ok) throw new Error('Failed to fetch inbox');
+      const messages = await res.json();
+
+      if (messages.length === 0) {
+        inboxDiv.innerHTML = '<p>No messages yet.</p>';
+        return;
+      }
+
+      inboxDiv.innerHTML = '<h3>Inbox</h3>' + messages.map(msg => `
+        <div class="msg-item" data-id="${msg.id}">
+          <div class="msg-subject">${msg.subject || '(No Subject)'}</div>
+          <div class="msg-from">From: ${msg.from}</div>
+          <div><small>${new Date(msg.date).toLocaleString()}</small></div>
+        </div>
+      `).join('');
+
+      // Add click handlers to each message to fetch full content
+      document.querySelectorAll('.msg-item').forEach(el => {
+        el.onclick = () => {
+          const id = el.getAttribute('data-id');
+          fetchMessage(id);
+        };
+      });
+    } catch (err) {
+      inboxDiv.innerHTML = '';
+      alert(err.message);
+    }
+  };
+
+  logoutBtn.onclick = async () => {
+    try {
+      await fetch('/api/logout', { method: 'POST' });
+      currentEmail = null;
+      emailDisplay.textContent = '';
+      inboxDiv.innerHTML = '';
+      messageDiv.innerHTML = '';
+      logoutBtn.disabled = true;
+      loginFields.style.display = modeToggle.checked ? 'block' : 'none';
+      signupFields.style.display = modeToggle.checked ? 'none' : 'block';
+      modeToggle.checked = false; // reset toggle to Sign Up mode
+      alert('Logged out successfully');
+    } catch (err) {
+      alert('Logout failed: ' + err.message);
+    }
+  };
+
+  async function fetchMessage(id) {
+    messageDiv.innerHTML = 'Loading message...';
+    try {
+      const res = await fetch(`/api/message/${id}`);
+      if (!res.ok) throw new Error('Failed to fetch message');
+      const msg = await res.json();
+      messageDiv.innerHTML = `
+        <h3>${msg.subject || '(No Subject)'}</h3>
+        <p><strong>From:</strong> ${msg.from}</p>
+        <p><strong>Date:</strong> ${new Date(msg.date).toLocaleString()}</p>
+        <pre>${msg.body || '(No content)'}</pre>
+      `;
+    } catch (err) {
+      messageDiv.innerHTML = '';
+      alert(err.message);
+    }
   }
-}
-
-async function checkInbox() {
-  const res = await fetch('/api/inbox');
-  const data = await res.json();
-  if (data.error) {
-    alert(data.error);
-    return;
-  }
-  messages = data;
-  const inbox = document.getElementById('inboxMessages');
-  inbox.classList.remove('hidden');
-  if (!messages.length) {
-    inbox.innerHTML = `<h3>Inbox</h3><p>No messages yet.</p>`;
-  } else {
-    inbox.innerHTML = `<h3>Inbox</h3>` + messages.map(m => `
-      <div class="message-subject" onclick="showMessage('${m.id}')">${m.subject || '(No Subject)'}</div>
-      <p><strong>From:</strong> ${m.from}</p>
-      <hr>`).join('');
-  }
-  document.getElementById('messageContent').classList.add('hidden');
-}
-
-async function showMessage(id) {
-  const res = await fetch(`/api/message/${id}`);
-  const data = await res.json();
-  if (data.error) {
-    alert('Failed to load message.');
-    return;
-  }
-  const contentDiv = document.getElementById('messageContent');
-  contentDiv.classList.remove('hidden');
-  // Show plain text or html body (fall back to intro)
-  const body = data.text || data.html || data.intro || 'No content';
-  // Sanitize simple HTML if needed, or display as plain text
-  contentDiv.innerHTML = `<h3>${data.subject || '(No Subject)'}</h3>
-    <p><strong>From:</strong> ${data.from.address}</p>
-    <p><strong>Date:</strong> ${new Date(data.createdAt).toLocaleString()}</p>
-    <hr>
-    <div>${body}</div>`;
-}
-
-async function logout() {
-  await fetch('/api/logout', { method: 'POST' });
-  email = '';
-  password = '';
-  messages = [];
-  document.getElementById('emailDisplay').innerHTML = '';
-  document.getElementById('inboxMessages').classList.add('hidden');
-  document.getElementById('messageContent').classList.add('hidden');
-  document.getElementById('checkInboxBtn').disabled = true;
-  document.getElementById('logoutBtn').classList.add('hidden');
-  alert('Logged out');
-}
 </script>
 
 </body>
