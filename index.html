@@ -1,257 +1,215 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Titan Tools - TempGen</title>
+<title>Titan Tools - TempMail</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Orbitron&display=swap');
-  body {
-    background-color: #0d0d0d;
-    font-family: 'Orbitron', sans-serif;
-    color: #00f7ff;
-    margin: 0; padding: 0;
-    text-align: center;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-  }
-  h1 {
-    font-size: 3em;
-    margin: 40px 0 10px;
-    text-shadow: 0 0 15px #0ff;
-  }
-  .container {
-    max-width: 400px;
-    width: 90%;
-    margin: 20px auto;
-    padding: 30px 25px 35px;
-    border: 1px solid #0ff;
-    border-radius: 12px;
-    box-shadow: 0 0 30px #0ff;
-    background: #111;
-  }
-  input, select, button {
-    padding: 14px;
-    margin: 12px 0;
-    border: none;
-    border-radius: 10px;
-    font-size: 1em;
-    width: 95%;
-    box-sizing: border-box;
-    font-weight: bold;
-    letter-spacing: 0.05em;
-  }
-  input::placeholder {
-    color: #0ff;
-    opacity: 0.7;
-  }
-  select {
-    background: #222;
-    color: #0ff;
-  }
-  button {
-    background-color: #00f7ff;
-    color: #000;
-    cursor: pointer;
-    box-shadow: 0 0 15px #00f7ff;
-    font-weight: 900;
-    transition: background-color 0.3s ease;
-  }
-  button:hover {
-    background-color: #0ff;
-  }
-  #numberDisplay, #inboxMessages {
-    margin-top: 20px;
-    padding: 15px;
-    background: #111;
-    border-radius: 10px;
-    box-shadow: 0 0 15px #0ff;
-    text-align: left;
-    max-height: 220px;
-    overflow-y: auto;
-    font-size: 0.9em;
-    line-height: 1.4em;
-  }
-  .hidden {
-    display: none !important;
-  }
-  .link {
-    color: #00f7ff;
-    cursor: pointer;
-    text-decoration: underline;
-    font-weight: 700;
-  }
-  #logoutBtn {
-    margin-top: 15px;
-    background-color: #f00;
-    color: #fff;
-    width: 100%;
-    box-shadow: 0 0 15px #f00;
-  }
-  #logoutBtn:hover {
-    background-color: #ff3333;
-  }
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap');
+body {
+  background-color: #0d0d0d;
+  font-family: 'Orbitron', sans-serif;
+  color: #00f7ff;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+  transition: all 0.4s ease;
+}
+h1 {
+  font-size: 2.8em;
+  margin-top: 40px;
+  text-shadow: 0 0 15px #0ff;
+}
+.container {
+  max-width: 420px;
+  margin: 25px auto;
+  padding: 25px;
+  border: 1px solid #0ff;
+  border-radius: 12px;
+  box-shadow: 0 0 30px #0ff;
+  background: #111;
+}
+input, button {
+  padding: 13px;
+  margin: 13px 0;
+  border: none;
+  border-radius: 8px;
+  font-size: 1em;
+  width: 90%;
+}
+button {
+  background-color: #00f7ff;
+  color: #000;
+  cursor: pointer;
+  box-shadow: 0 0 15px #00f7ff;
+  transition: background-color 0.3s ease;
+}
+button:hover {
+  background-color: #0ff;
+}
+#emailDisplay, #inboxMessages {
+  margin-top: 20px;
+  padding: 12px;
+  background: #111;
+  border-radius: 10px;
+  box-shadow: 0 0 15px #0ff;
+  max-height: 300px;
+  overflow-y: auto;
+  text-align: left;
+}
+.hidden {
+  display: none;
+}
+.link {
+  color: #00f7ff;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.toggle-btn {
+  position: fixed;
+  top: 10px;
+  right: 15px;
+  padding: 10px 15px;
+  background: #00f7ff;
+  color: #000;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  user-select: none;
+}
+.light-mode {
+  background: #f2f2f2;
+  color: #222;
+}
+.light-mode .container {
+  background: #fff;
+  border-color: #00f7ff;
+  box-shadow: 0 0 10px #00f7ff;
+}
 </style>
 </head>
 <body>
 
-<h1>Titan Tools</h1>
+<div class="toggle-btn" onclick="toggleMode()">Dark/Light</div>
+
+<h1>Titan TempMail</h1>
 
 <div class="container" id="loginPage">
   <h2>Login</h2>
-  <input type="text" id="loginUsername" placeholder="Username" autocomplete="off" />
-  <input type="password" id="loginPassword" placeholder="Password" autocomplete="off" />
+  <input type="text" id="loginUsername" placeholder="Username" autocomplete="username" />
+  <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password" />
   <button onclick="login()">Login</button>
   <p>Don't have an account? <span class="link" onclick="showSignup()">Signup</span></p>
 </div>
 
 <div class="container hidden" id="signupPage">
   <h2>Signup</h2>
-  <input type="text" id="signupUsername" placeholder="Username" autocomplete="off" />
-  <input type="password" id="signupPassword" placeholder="Password" autocomplete="off" />
+  <input type="text" id="signupUsername" placeholder="Username" autocomplete="username" />
+  <input type="password" id="signupPassword" placeholder="Password" autocomplete="new-password" />
   <button onclick="signup()">Signup</button>
   <p>Already have an account? <span class="link" onclick="showLogin()">Login</span></p>
 </div>
 
 <div class="container hidden" id="dashboardPage">
-  <h2>Generator Dashboard</h2>
-  <select id="genType">
-    <option value="number">Temporary Number</option>
-    <option value="email">Temporary Email</option>
-  </select>
-  <button onclick="generate()">Generate</button>
-  <button onclick="loadInbox()">Inbox</button>
-  <button id="logoutBtn" onclick="logout()">Logout</button>
-  
-  <div id="numberDisplay"></div>
+  <h2>Email Generator</h2>
+  <button onclick="generateEmail()">Generate Temp Email</button>
+  <button onclick="checkInbox()">Check Inbox</button>
+  <button onclick="logout()">Logout</button>
+
+  <div id="emailDisplay"></div>
   <div id="inboxMessages" class="hidden"></div>
 </div>
 
 <script>
-  let currentEmail = null;
-  let currentLogin = null;
-  let currentDomain = null;
+let loginVal = null, domain = null;
 
-  // On page load, check saved user and email
-  window.onload = () => {
-    const savedUser = localStorage.getItem('titanUser');
-    const savedEmail = localStorage.getItem('currentEmailData');
-    if (savedUser) {
-      showDashboard();
-      if (savedEmail) {
-        const data = JSON.parse(savedEmail);
-        currentEmail = data.email;
-        currentLogin = data.login;
-        currentDomain = data.domain;
-        displayEmail(currentEmail);
-      }
-    }
-  };
-
-  function showSignup() {
+function showSignup() {
+  document.getElementById('loginPage').classList.add('hidden');
+  document.getElementById('signupPage').classList.remove('hidden');
+}
+function showLogin() {
+  document.getElementById('signupPage').classList.add('hidden');
+  document.getElementById('loginPage').classList.remove('hidden');
+}
+function login() {
+  const u = document.getElementById('loginUsername').value.trim();
+  const p = document.getElementById('loginPassword').value.trim();
+  if(u && p) {
+    localStorage.setItem('userTitan', u);
     document.getElementById('loginPage').classList.add('hidden');
-    document.getElementById('signupPage').classList.remove('hidden');
-  }
-  function showLogin() {
-    document.getElementById('signupPage').classList.add('hidden');
-    document.getElementById('loginPage').classList.remove('hidden');
-  }
-  function login() {
-    const user = document.getElementById('loginUsername').value.trim();
-    const pass = document.getElementById('loginPassword').value.trim();
-    if(user && pass) {
-      localStorage.setItem('titanUser', user);
-      showDashboard();
-    } else alert('Enter both fields!');
-  }
-  function signup() {
-    const user = document.getElementById('signupUsername').value.trim();
-    const pass = document.getElementById('signupPassword').value.trim();
-    if(user && pass) {
-      localStorage.setItem('titanUser', user);
-      showDashboard();
-    } else alert('Fill both fields!');
-  }
-  function showDashboard() {
-    document.getElementById('loginPage').classList.add('hidden');
+    document.getElementById('dashboardPage').classList.remove('hidden');
+  } else alert('Fill both fields!');
+}
+function signup() {
+  const u = document.getElementById('signupUsername').value.trim();
+  const p = document.getElementById('signupPassword').value.trim();
+  if(u && p) {
+    localStorage.setItem('userTitan', u);
     document.getElementById('signupPage').classList.add('hidden');
     document.getElementById('dashboardPage').classList.remove('hidden');
-  }
-  function logout() {
-    localStorage.removeItem('titanUser');
-    localStorage.removeItem('currentEmailData');
-    currentEmail = null;
-    currentLogin = null;
-    currentDomain = null;
-    document.getElementById('dashboardPage').classList.add('hidden');
-    document.getElementById('loginPage').classList.remove('hidden');
-    document.getElementById('numberDisplay').innerHTML = '';
-    document.getElementById('inboxMessages').innerHTML = '';
-    document.getElementById('inboxMessages').classList.add('hidden');
-  }
-  async function generate() {
-    const type = document.getElementById('genType').value;
-    const display = document.getElementById('numberDisplay');
-    const inbox = document.getElementById('inboxMessages');
-    inbox.classList.add('hidden');
-    if(type === 'email') {
-      try {
-        const res = await fetch('/api/generate');
-        const data = await res.json();
-        currentEmail = data.email;
-        currentLogin = data.login;
-        currentDomain = data.domain;
-        localStorage.setItem('currentEmailData', JSON.stringify(data));
-        displayEmail(currentEmail);
-      } catch (e) {
-        alert('Failed to generate email');
+  } else alert('Fill both fields!');
+}
+function logout() {
+  localStorage.removeItem('userTitan');
+  loginVal = null;
+  domain = null;
+  document.getElementById('emailDisplay').innerHTML = '';
+  document.getElementById('inboxMessages').innerHTML = '';
+  document.getElementById('inboxMessages').classList.add('hidden');
+  document.getElementById('dashboardPage').classList.add('hidden');
+  document.getElementById('loginPage').classList.remove('hidden');
+}
+function toggleMode() {
+  document.body.classList.toggle('light-mode');
+}
+function generateEmail() {
+  fetch('/api/generate')
+    .then(res => {
+      if (!res.ok) throw new Error('Failed to generate email');
+      return res.json();
+    })
+    .then(data => {
+      loginVal = data.login;
+      domain = data.domain;
+      document.getElementById('emailDisplay').innerHTML = `
+        <h3>Your Temp Email:</h3><p>${data.email}</p>`;
+      document.getElementById('inboxMessages').classList.add('hidden');
+      document.getElementById('inboxMessages').innerHTML = '';
+    })
+    .catch(err => alert(err.message));
+}
+function checkInbox() {
+  if (!loginVal || !domain) return alert('Generate a Temp Email first!');
+  fetch(`/api/inbox?login=${loginVal}&domain=${domain}`)
+    .then(res => {
+      if (!res.ok) throw new Error('Failed to fetch inbox');
+      return res.json();
+    })
+    .then(data => {
+      const inbox = document.getElementById('inboxMessages');
+      inbox.classList.remove('hidden');
+      if (!data.length) {
+        inbox.innerHTML = `<h3>Inbox</h3><p>No messages yet.</p>`;
+      } else {
+        inbox.innerHTML = `<h3>Inbox</h3>` + data.map(m => `
+          <p><strong>From:</strong> ${m.from}</p>
+          <p><strong>Subject:</strong> ${m.subject}</p>
+          <p>${m.body ? m.body : ''}</p>
+          <hr>`).join('');
       }
-    } else {
-      const tempNum = '+1' + Math.floor(1000000000 + Math.random()*9000000000);
-      currentEmail = null;
-      currentLogin = null;
-      currentDomain = null;
-      localStorage.removeItem('currentEmailData');
-      display.innerHTML = `<h3>Your Temp Number:</h3><p>${tempNum}</p>`;
-    }
+    })
+    .catch(err => alert(err.message));
+}
+
+// Auto-login if user already stored
+window.onload = () => {
+  const user = localStorage.getItem('userTitan');
+  if(user) {
+    document.getElementById('loginPage').classList.add('hidden');
+    document.getElementById('dashboardPage').classList.remove('hidden');
   }
-  function displayEmail(email) {
-    const display = document.getElementById('numberDisplay');
-    display.innerHTML = `<h3>Your Temp Email:</h3><p>${email}</p>`;
-  }
-  async function loadInbox() {
-    const inbox = document.getElementById('inboxMessages');
-    const display = document.getElementById('numberDisplay');
-    if (!currentLogin || !currentDomain) {
-      alert('Generate a temp email first!');
-      return;
-    }
-    display.innerHTML = '';
-    inbox.classList.remove('hidden');
-    inbox.innerHTML = '<h3>Loading inbox...</h3>';
-    try {
-      const res = await fetch(`/api/inbox?login=${currentLogin}&domain=${currentDomain}`);
-      const messages = await res.json();
-      if (messages.length === 0) {
-        inbox.innerHTML = '<h3>Inbox Messages</h3><p>No messages yet.</p>';
-        return;
-      }
-      let html = '<h3>Inbox Messages</h3>';
-      messages.forEach(msg => {
-        html += `<hr>
-        <p><strong>From:</strong> ${msg.from}</p>
-        <p><strong>Subject:</strong> ${msg.subject}</p>
-        <p><strong>Date:</strong> ${msg.date}</p>
-        <p><strong>Preview:</strong> ${msg.text.substring(0, 100)}${msg.text.length > 100 ? '...' : ''}</p>`;
-      });
-      inbox.innerHTML = html;
-    } catch (e) {
-      inbox.innerHTML = '<p>Failed to load inbox messages.</p>';
-    }
-  }
+};
 </script>
 
 </body>
